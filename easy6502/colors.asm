@@ -21,14 +21,11 @@ main_loop:
         cpx #0 ; check if counter has reached 255
         bne fill_screen ; loop if not
 
-    ; wait for user to press enter
-    wait_for_enter:
-        ldy $ff ; read last key pressed
+    ; wait for user to press any key
+    wait_for_key:
+        cpy $ff ; check if key has been pressed
+        beq wait_for_key ; keep waiting if not
 
-        cpy #$0d ; check if enter was pressed
-        bne wait_for_enter ; keep waiting if not
-
-    ldy #0 ; reset keyboard state
-    sty $ff ; clear last key pressed
+        ldy $ff ; load key value
 
     jmp main_loop ; repeat
