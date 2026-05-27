@@ -1,5 +1,3 @@
-ldx #0 ; initalize counter to 0
-
 main_loop:
     ; generate random color
     randomize_color:
@@ -26,6 +24,6 @@ main_loop:
         cpy $ff ; check if key has been pressed
         beq wait_for_key ; keep waiting if not
 
-        ldy $ff ; load key value
+        sty $ff ; clear last key pressed
 
     jmp main_loop ; repeat
