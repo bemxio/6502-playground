@@ -1,7 +1,18 @@
 ; defines and macros
+.define PPU_CTRL $2000
+.define PPU_MASK $2001
+.define PPU_STATUS $2002
+.define PPU_ADDR $2006
+.define PPU_DATA $2007
+
+.define OAM_DMA $4014
+
+.define APU_DMC $4010
+.define APU_FRAME_COUNTER $4017
+
 .macro wait_for_vblank
     :
-        bit $2002 ; read PPU status register
+        bit PPU_STATUS ; read PPU status register
         bpl :- ; loop until vblank flag is set
 .endmacro
 
@@ -23,11 +34,11 @@
 
         ; disable sound IRQs
         ldx #%1000000 ; mode 0 (4-step), IRQ inhibit flag enabled
-        stx $4017 ; send value to APU frame counter
+        stx APU_FRAME_COUNTER ; send value to APU frame counter
 
         ; disable PCM
         ldx #0 ; IRQ disabled, loop flag disabled, rate index 0
-        stx $4010 ; send value to APU DMC
+        stx APU_DMC ; send value to APU DMC
 
         ; initalize stack pointer
         ldx #$ff ; stack address
@@ -36,8 +47,8 @@
         ; clear PPU registers
         ldx #0
 
-        stx $2000 ; send value to PPU control register
-        stx $2001 ; send value to PPU mask register
+        stx PPU_CTRL ; send value to PPU control register
+        stx PPU_MASK ; send value to PPU mask register
 
         wait_for_vblank ; wait for vblank to ensure PPU is ready
 
@@ -66,22 +77,22 @@
 
         ; copy OAM buffer to PPU
         lda #2 ; page number
-        sta $4014 ; send value to OAM DMA register
+        sta OAM_DMA ; send value to OAM DMA register
 
         nop ; wait for DMA to complete
 
         ; set up palette data
         lda #$3f ; high byte of palette data address in PPU memory
-        sta $2006 ; send value to PPU address register
+        sta PPU_ADDR ; send value to PPU address register
 
         lda #0 ; low byte of address
-        sta $2006 ; send value to PPU address register
+        sta PPU_ADDR ; send value to PPU address register
 
         ldx #0 ; offset for palette data
 
         load_palettes:
             lda palette_data, x ; load byte of palette data
-            sta $2007 ; send value to PPU data register
+            sta PPU_DATA ; send value to PPU data register
 
             inx ; increment offset
 
@@ -104,11 +115,11 @@
 
         ; set up NMI
         lda #%10010000 ; enable NMI on vblank, $1000 as background pattern table address
-        sta $2000 ; send value to PPU control register
+        sta PPU_CTRL ; send value to PPU control register
 
         ; show sprites and background
         lda #%00011110 ; enable background and sprite rendering, show both in leftmost 8 pixels
-        sta $2001 ; send value to PPU mask register
+        sta PPU_MASK ; send value to PPU mask register
 
         :
             jmp :- ; infinite loop
@@ -116,7 +127,7 @@
     nmi:
         ; copy OAM buffer to PPU
         lda #2 ; page number
-        sta $4014 ; send value to OAM DMA register
+        sta OAM_DMA ; send value to OAM DMA register
 
         rti ; return from interrupt
 
