@@ -22,7 +22,7 @@
         cld ; clear decimal mode
 
         ; disable sound IRQs
-        ldx #%1000000 ; mode 0 (4-step), IRQ inhibit flag disabled 
+        ldx #%1000000 ; mode 0 (4-step), IRQ inhibit flag enabled
         stx $4017 ; send value to APU frame counter
 
         ; disable PCM
@@ -61,7 +61,7 @@
 
             cpx #0 ; check if offset has wrapped around
             bne clear_memory ; loop if not done
- 
+
         wait_for_vblank ; wait for vblank to ensure PPU is ready
 
         ; copy OAM buffer to PPU
@@ -97,7 +97,7 @@
 
             inx ; increment offset
 
-            cpx #16 ; check if all 16 bytes of sprite data have been sent
+            cpx #40 ; check if all 40 bytes of sprite data have been sent
             bne load_sprites ; loop if not done
 
         cli ; enable interrupts
@@ -117,19 +117,26 @@
         ; copy OAM buffer to PPU
         lda #2 ; page number
         sta $4014 ; send value to OAM DMA register
-    
+
         rti ; return from interrupt
 
     palette_data:
-        .byte $00, $0F, $00, $10,   $00, $0A, $15, $01,     $00, $29, $28, $27,     $00, $34, $24, $14 	; background
-        .byte $31, $0F, $15, $30,   $00, $0F, $11, $30,     $00, $0F, $30, $27,     $00, $3C, $2C, $1C 	; sprite
+        .byte $00, $00, $00, $00,   $00, $00, $00, $00,     $00, $00, $00, $00,     $00, $00, $00, $00 	; background
+        .byte $0f, $30, $00, $00,   $00, $00, $00, $00,     $00, $00, $00, $00,     $00, $00, $00, $00 	; sprite
 
     sprite_data:
         ; Y, tile index, attributes, X
-        .byte $40, $00, $00, $40
-        .byte $40, $01, $00, $48
-        .byte $48, $10, $00, $40
-        .byte $48, $11, $00, $48
+        .byte $08, $86, $00, $02 ; H
+        .byte $08, $3e, $00, $0a ; E
+        .byte $08, $b4, $00, $12 ; L
+        .byte $08, $b4, $00, $1a ; L
+        .byte $08, $32, $00, $22 ; O
+
+        .byte $10, $9b, $00, $02 ; W
+        .byte $10, $32, $00, $0a ; O
+        .byte $10, $31, $00, $12 ; R
+        .byte $10, $b4, $00, $1a ; L
+        .byte $10, $46, $00, $22 ; D
 
 .segment "VECTORS"
     .word nmi ; non-maskable interrupt
