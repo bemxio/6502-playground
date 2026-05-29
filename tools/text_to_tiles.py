@@ -1,0 +1,1 @@
+print(", ".join(f"${" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~".index(c):02x}" for c in input())) # a goofy one-liner :-)
