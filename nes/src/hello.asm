@@ -194,4 +194,4 @@
     .word reset ; reset handler address
 
 .segment "CHARS"
-    .incbin "rom.chr" ; sprite and background tile data
+    .incbin "inkbox.chr" ; sprite and background tile data
