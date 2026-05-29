@@ -230,4 +230,4 @@
     .word reset ; reset handler address
 
 .segment "CHARS"
-    .incbin "inkbox.chr" ; sprite and background tile data
+    .incbin "rom.chr" ; sprite and background tile data

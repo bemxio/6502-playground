@@ -130,7 +130,7 @@
 
             inx ; increment offset
 
-            cpx #107 ; check if all bytes of background data have been sent
+            cpx #108 ; check if all bytes of background data have been sent
             bne load_background ; loop if not done
 
         ; reset scroll
@@ -174,13 +174,13 @@
         .byte $00, $00, $00, $00
 
     background_data:
-        .byte $a2, $9f, $a6, $a6, $a9, $90, $b1, $a9, $ac, $a6, $9e ; HELLO WORLD
-        .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+        .byte $28, $45, $4c, $4c, $4f, $0c, $00, $57, $4f, $52, $4c, $44, $01 ; Hello, world!
+        .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
         .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
-        .byte $ae, $a2, $9f, $90, $ab, $af, $a3, $9d, $a5, $90, $9c, $ac, $a9, $b1, $a8, $90, $a0, $a9, $b2, $00 ; THE QUICK BROWN FOX
-        .byte $a4, $af, $a7, $aa, $ad, $90, $a9, $b0, $9f, $ac, $90, $ae, $a2, $9f, $90, $a6, $9b, $b4, $b3, $90, $9e, $a9, $a1 ; JUMPS OVER THE LAZY DOG
+        .byte $34, $48, $45, $00, $51, $55, $49, $43, $4b, $00, $42, $52, $4f, $57, $4e, $00, $46, $4f, $58, $00 ; The quick brown fox
+        .byte $4a, $55, $4d, $50, $53, $00, $4f, $56, $45, $52, $00, $54, $48, $45, $00, $4c, $41, $5a, $59, $00, $44, $4f, $47, $0e ; jumps over the lazy dog.
 
     sprite_data:
         ; Y, tile index, attributes, X
@@ -194,4 +194,4 @@
     .word reset ; reset handler address
 
 .segment "CHARS"
-    .incbin "inkbox.chr" ; sprite and background tile data
+    .incbin "rom.chr" ; sprite and background tile data
