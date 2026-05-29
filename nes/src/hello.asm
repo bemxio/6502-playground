@@ -2,6 +2,7 @@
 .define PPU_CTRL $2000
 .define PPU_MASK $2001
 .define PPU_STATUS $2002
+.define PPU_SCROLL $2005
 .define PPU_ADDR $2006
 .define PPU_DATA $2007
 
@@ -28,6 +29,7 @@
 .segment "ZEROPAGE"
 
 .segment "STARTUP"
+    ; interrupt handlers
     reset:
         sei ; disable interrupts
         cld ; clear decimal mode
@@ -85,7 +87,7 @@
         lda #$3f ; high byte of palette data address in PPU memory
         sta PPU_ADDR ; send value to PPU address register
 
-        lda #0 ; low byte of address
+        lda #$00 ; low byte of address
         sta PPU_ADDR ; send value to PPU address register
 
         ldx #0 ; offset for palette data
@@ -96,7 +98,7 @@
 
             inx ; increment offset
 
-            cpx #32 ; check if all 32 bytes of palette data have been sent
+            cpx #32 ; check if all bytes of palette data have been sent
             bne load_palettes ; loop if not done
 
         ; set up sprite data
@@ -108,8 +110,34 @@
 
             inx ; increment offset
 
-            cpx #40 ; check if all 40 bytes of sprite data have been sent
+            cpx #40 ; check if all bytes of sprite data have been sent
             bne load_sprites ; loop if not done
+
+        ; set up background data
+        lda PPU_STATUS ; reset address latch
+
+        lda #$21 ; high byte of background data address in PPU memory
+        sta PPU_ADDR ; send value to PPU address register
+
+        lda #$00 ; low byte of address
+        sta PPU_ADDR ; send value to PPU address register
+
+        ldx #0 ; offset for background data
+
+        load_background:
+            lda background_data, x ; load byte of background data
+            sta PPU_DATA ; send value to PPU data register
+
+            inx ; increment offset
+
+            cpx #107 ; check if all bytes of background data have been sent
+            bne load_background ; loop if not done
+
+        ; reset scroll
+        lda #0
+
+        sta PPU_SCROLL ; send value to PPU scroll register (horizontal)
+        sta PPU_SCROLL ; send value to PPU scroll register (vertical)
 
         cli ; enable interrupts
 
@@ -131,27 +159,39 @@
 
         rti ; return from interrupt
 
+    ; data
     palette_data:
-        .byte $00, $00, $00, $00,   $00, $00, $00, $00,     $00, $00, $00, $00,     $00, $00, $00, $00 	; background
-        .byte $0f, $30, $00, $00,   $00, $00, $00, $00,     $00, $00, $00, $00,     $00, $00, $00, $00 	; sprite
+        ; background
+        .byte $00, $1f, $00, $00
+        .byte $00, $00, $00, $00
+        .byte $00, $00, $00, $00
+        .byte $00, $00, $00, $00
+
+        ; sprites
+        .byte $30, $0f, $16, $30
+        .byte $00, $00, $00, $00
+        .byte $00, $00, $00, $00
+        .byte $00, $00, $00, $00
+
+    background_data:
+        .byte $a2, $9f, $a6, $a6, $a9, $90, $b1, $a9, $ac, $a6, $9e ; HELLO WORLD
+        .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+
+        .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+
+        .byte $ae, $a2, $9f, $90, $ab, $af, $a3, $9d, $a5, $90, $9c, $ac, $a9, $b1, $a8, $90, $a0, $a9, $b2, $00 ; THE QUICK BROWN FOX
+        .byte $a4, $af, $a7, $aa, $ad, $90, $a9, $b0, $9f, $ac, $90, $ae, $a2, $9f, $90, $a6, $9b, $b4, $b3, $90, $9e, $a9, $a1 ; JUMPS OVER THE LAZY DOG
 
     sprite_data:
         ; Y, tile index, attributes, X
-        .byte $08, $86, $00, $02 ; H
-        .byte $08, $3e, $00, $0a ; E
-        .byte $08, $b4, $00, $12 ; L
-        .byte $08, $b4, $00, $1a ; L
-        .byte $08, $32, $00, $22 ; O
-
-        .byte $10, $9b, $00, $02 ; W
-        .byte $10, $32, $00, $0a ; O
-        .byte $10, $31, $00, $12 ; R
-        .byte $10, $b4, $00, $1a ; L
-        .byte $10, $46, $00, $22 ; D
+        .byte $08, $00, $00, $02
+	    .byte $08, $01, $00, $0a
+	    .byte $10, $10, $00, $02
+	    .byte $10, $11, $00, $0a
 
 .segment "VECTORS"
-    .word nmi ; non-maskable interrupt
-    .word reset ; reset interrupt
+    .word nmi ; NMI handler address
+    .word reset ; reset handler address
 
 .segment "CHARS"
     .incbin "rom.chr" ; sprite and background tile data
