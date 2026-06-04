@@ -22,10 +22,10 @@ clean:
 	fceux $<
 
 $(BUILD_DIR)/%.nes: $(BUILD_DIR)/%.o
-	$(LD) $(LDFLAGS) $^ -o $@
+	$(LD) $(LDFLAGS) $< -o $@
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm | $(BUILD_DIR)
-	$(AS) $(ASFLAGS) $^ -o $@
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm rom.chr | $(BUILD_DIR)
+	$(AS) $(ASFLAGS) $< -o $@
 
 $(BUILD_DIR):
 	mkdir -p $@

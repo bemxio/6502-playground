@@ -1,16 +1,17 @@
 ; defines and macros
-.define PPU_CTRL $2000
-.define PPU_MASK $2001
-.define PPU_STATUS $2002
-.define PPU_ADDR $2006
-.define PPU_DATA $2007
+PPU_CTRL = $2000
+PPU_MASK = $2001
+PPU_STATUS = $2002
+PPU_SCROLL = $2005
+PPU_ADDR = $2006
+PPU_DATA = $2007
 
-.define OAM_DMA $4014
+OAM_DMA = $4014
 
-.define APU_DMC $4010
-.define APU_FRAME_COUNTER $4017
+APU_DMC = $4010
+APU_FRAME_COUNTER = $4017
 
-.define JOY1 $4016
+JOY1 = $4016
 
 .macro wait_for_vblank
     :
@@ -31,28 +32,8 @@
     controls: .res 1 ; state of controller buttons
 
 .segment "STARTUP"
-    ; subroutines
-    read_joy1: ; taken from https://www.nesdev.org/wiki/Controller_reading_code#Basic_Example :-)
-        lda #1 ; controller port latch bit set to 1
-        sta JOY1 ; send value to controller port
-
-        sta controls ; store accumulator ($01) in controls
-
-        lsr ; reset accumulator to 0
-        sta JOY1 ; send value to controller port
-
-        read_joy1_loop:
-            lda JOY1 ; read value from controller port
-
-            lsr ; shift value right to get next button state
-            rol controls ; rotate bits left in controls
-
-            bcc read_joy1_loop ; loop until all button states have been read
-
-        rts ; return from subroutine
-
     ; interrupt handlers
-    reset:
+    on_reset:
         sei ; disable interrupts
         cld ; clear decimal mode
 
@@ -146,8 +127,8 @@
         :
             jmp :- ; infinite loop
 
-    nmi:
-        jsr read_joy1 ; read controller state
+    on_vblank:
+        jsr read_joystick ; read controller state
 
         ; right button check
         lda controls ; load controller state to accumulator
@@ -204,6 +185,26 @@
 
         rti ; return from interrupt
 
+    ; subroutines
+    read_joystick: ; taken from https://www.nesdev.org/wiki/Controller_reading_code#Basic_Example :-)
+        lda #1 ; controller port latch bit set to 1
+        sta JOY1 ; send value to controller port
+
+        sta controls ; store accumulator ($01) in controls
+
+        lsr ; reset accumulator to 0
+        sta JOY1 ; send value to controller port
+
+        read_joystick_loop:
+            lda JOY1 ; read value from controller port
+
+            lsr ; shift value right to get next button state
+            rol controls ; rotate bits left in controls
+
+            bcc read_joystick_loop ; loop until all button states have been read
+
+        rts ; return from subroutine
+
     ; data
     palette_data:
         ; background
@@ -226,8 +227,8 @@
 	    .byte $10, $11, $00, $0a
 
 .segment "VECTORS"
-    .word nmi ; NMI handler address
-    .word reset ; reset handler address
+    .word on_vblank ; NMI handler address
+    .word on_reset ; reset handler address
 
 .segment "CHARS"
     .incbin "rom.chr" ; sprite and background tile data

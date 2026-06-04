@@ -1,15 +1,15 @@
-; defines and macros
-.define PPU_CTRL $2000
-.define PPU_MASK $2001
-.define PPU_STATUS $2002
-.define PPU_SCROLL $2005
-.define PPU_ADDR $2006
-.define PPU_DATA $2007
+; constants and macros
+PPU_CTRL = $2000
+PPU_MASK = $2001
+PPU_STATUS = $2002
+PPU_SCROLL = $2005
+PPU_ADDR = $2006
+PPU_DATA = $2007
 
-.define OAM_DMA $4014
+OAM_DMA = $4014
 
-.define APU_DMC $4010
-.define APU_FRAME_COUNTER $4017
+APU_DMC = $4010
+APU_FRAME_COUNTER = $4017
 
 .macro wait_for_vblank
     :
@@ -26,11 +26,9 @@
     .byte $00, $00, $00, $00 ; other parameters, unused for now
     .byte $00, $00, $00, $00
 
-.segment "ZEROPAGE"
-
 .segment "STARTUP"
     ; interrupt handlers
-    reset:
+    on_reset:
         sei ; disable interrupts
         cld ; clear decimal mode
 
@@ -152,7 +150,7 @@
         :
             jmp :- ; infinite loop
 
-    nmi:
+    on_vblank:
         ; copy OAM buffer to PPU
         lda #2 ; page number
         sta OAM_DMA ; send value to OAM DMA register
@@ -190,8 +188,8 @@
 	    .byte $10, $11, $00, $0a
 
 .segment "VECTORS"
-    .word nmi ; NMI handler address
-    .word reset ; reset handler address
+    .word on_vblank ; NMI handler address
+    .word on_reset ; reset handler address
 
 .segment "CHARS"
     .incbin "rom.chr" ; sprite and background tile data
