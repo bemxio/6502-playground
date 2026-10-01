@@ -1,9 +1,9 @@
 # constants
 AS = ca65
-ASFLAGS = -t nes
+ASFLAGS = -t nes -g
 
 LD = ld65
-LDFLAGS = -t nes
+LDFLAGS = -C linker.cfg
 
 SRC_DIR = src
 BUILD_DIR = build
@@ -19,12 +19,12 @@ clean:
 
 # rules
 %: $(BUILD_DIR)/%.nes
-	fceux $<
+	mesen $<
 
 $(BUILD_DIR)/%.nes: $(BUILD_DIR)/%.o
 	$(LD) $(LDFLAGS) $< -o $@
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm rom.chr | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm tiles.chr | $(BUILD_DIR)
 	$(AS) $(ASFLAGS) $< -o $@
 
 $(BUILD_DIR):
